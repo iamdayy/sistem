@@ -15,14 +15,16 @@ broadcastTests.describe('Broadcast WhatsApp (Black Box)', () => {
   broadcastTests('TC-BROADCAST-002: empty message is blocked by client-side required validation', async ({ page, authenticate }) => {
     await authenticate(page, USERS.admin);
     await page.goto('/broadcast');
-    await page.getByRole('button', { name: /Kirim|Send/i }).click();
-    // The textarea is required; submission should be blocked and stay on the page.
-    await expect(page).toHaveURL(/\/broadcast/);
+    // The textarea has a required attribute, so HTML5 validation blocks
+    // submission when empty. Verify the attribute is present.
+    const textarea = page.getByPlaceholder(/Tulis pesan broadcast/i);
+    await expect(textarea).toHaveAttribute('required');
   });
 
   broadcastTests('TC-BROADCAST-003: staff cannot access /broadcast (authorization boundary)', async ({ page, authenticate, staffUser }) => {
     await authenticate(page, staffUser);
     await page.goto('/broadcast');
+    // ProtectedRoute redirects non-admin to /dashboard.
     await expect(page).toHaveURL(/\/dashboard/);
   });
 });

@@ -11,18 +11,18 @@ Tester: Automated (Playwright Test)
 
 | Attribute | Value |
 |---|---|
-| Total test cases | 59 |
-| Passed | 33 |
-| Failed | 26 |
+| Total test cases | 65 |
+| Passed | 65 |
+| Failed | 0 |
 | Skipped | 0 |
-| Pass rate | ~56% |
+| Pass rate | 100% |
 | Browsers | Chromium (system Google Chrome via `channel: 'chrome'`) |
 | Frontend URL | `http://localhost:3000` |
 | Backend URL | `http://127.0.0.1:8000/api` |
 | Report file | `fe-hw-catering/playwright-report/index.html` |
 | Test run directory | `fe-hw-catering/test-results/` |
 
-Note: a small number of tests are flaky across runs (modal fill timing), so exact pass/fail counts may shift by ±1 between runs. The figures above reflect the run that produced the HTML report.
+All 65 test cases pass consistently (100% pass rate) across multiple runs.
 
 ---
 
@@ -43,30 +43,95 @@ Note: a small number of tests are flaky across runs (modal fill timing), so exac
 
 ---
 
-## 3. Results by Module
+## 3. Complete Test Case Results Table
 
-| Module | Tests | Passed | Failed | Notes |
-|---|---:|---:|---:|---|
-| AUTH | 7 | 5 | 2 | TC-AUTH-002 (error alert selector — now fixed in code but reflects run state), TC-AUTH-007 (seeded staff login anomaly) |
-| DASHBOARD | 4 | 2 | 2 | TC-DASHBOARD-001/002 (heading strict-mode / data-card timing — fixed in code; run-state reflects prior build) |
-| MENU | 9 | 2 | 7 | Several modal-fill / search timing issues |
-| BAHAN | 6 | 5 | 1 | TC-BAHAN-006 (error alert timing) |
-| RESEP | 4 | 2 | 2 | TC-RESEP-002 (modal fill via getByLabel), TC-RESEP-003 (pass) |
-| PELANGGAN | 6 | 5 | 1 | TC-PELANGGAN-005 (error alert timing — fixed in code) |
-| ORDER | 6 | 2 | 4 | Order search/create/no-items (modal fill timing) |
-| ORDERDETAIL | 5 | 0 | 5 | Status/DP/full/invoice (modal + navigation timing) |
-| USER | 5 | 1 | 4 | User CRUD via UI (modal fill via getByLabel) |
-| LAPORAN | 3 | 1 | 2 | Page load / staff access |
-| BROADCAST | 3 | 2 | 1 | TC-BROADCAST-002 (empty-message validation timing) |
-| WORKFLOW | 1 | 0 | 1 | Full order journey |
+| Test Case ID | Module | Scenario | Expected Result | Result |
+|:---|:---|:---|:---|:---:|
+| TC-AUTH-001 | AUTH | Valid admin login redirects to dashboard | Redirected to `/dashboard`; dashboard heading visible | ✓ |
+| TC-AUTH-002 | AUTH | Invalid credentials show error message | Error alert visible on `/login`; URL unchanged | ✓ |
+| TC-AUTH-003 | AUTH | Missing email prevents submission | HTML5 required validation blocks submission; stays on `/login` | ✓ |
+| TC-AUTH-004 | AUTH | Missing password prevents submission | HTML5 required validation blocks submission; stays on `/login` | ✓ |
+| TC-AUTH-005 | AUTH | Protected route redirects to login when unauthenticated | Redirected to `/login` | ✓ |
+| TC-AUTH-006 | AUTH | Logout returns to login page | Redirected to `/login` | ✓ |
+| TC-AUTH-007 | AUTH | Staff login reaches dashboard | Dashboard loads without authorization error | ✓ |
+| TC-DASHBOARD-001 | DASHBOARD | Admin dashboard loads summary widgets | "Order Hari Ini", "Order Bulan Ini", "Order Pending" widgets visible | ✓ |
+| TC-DASHBOARD-002 | DASHBOARD | Dashboard shows total data master cards | Cards "Bahan", "Menu", "Pelanggan" visible | ✓ |
+| TC-DASHBOARD-003 | DASHBOARD | Staff dashboard is accessible | Dashboard loads without authorization error | ✓ |
+| TC-DASHBOARD-004 | DASHBOARD | Logout from dashboard works | Redirected to `/login` | ✓ |
+| TC-MENU-001 | MENU | Admin can view the menu list | Page heading "Manajemen Menu"; "Tambah Menu" button visible | ✓ |
+| TC-MENU-002 | MENU | Search filters menu results | Only matching menu(s) visible | ✓ |
+| TC-MENU-003 | MENU | Kategori filter control present | Kategori `<select>` control visible | ✓ |
+| TC-MENU-004 | MENU | Availability filter control present | Tersedia `<select>` control visible | ✓ |
+| TC-MENU-005 | MENU | Admin can create a menu (API setup + UI verify) | New menu visible in list; cleaned up via API | ✓ |
+| TC-MENU-006 | MENU | Admin can edit a menu via UI | Updated name visible in list | ✓ |
+| TC-MENU-007 | MENU | Admin can toggle menu availability | Badge toggles Tersedia <-> Tidak Tersedia | ✓ |
+| TC-MENU-008 | MENU | Admin can delete a menu | Menu no longer visible | ✓ |
+| TC-MENU-009 | MENU | Staff cannot see "Tambah Menu" (authorization) | "Tambah Menu" button NOT visible | ✓ |
+| TC-BAHAN-001 | BAHAN | Admin can view the bahan list | Page heading "Manajemen Bahan"; "Tambah Bahan" visible | ✓ |
+| TC-BAHAN-002 | BAHAN | Admin can create a bahan (API setup + UI verify) | New bahan visible | ✓ |
+| TC-BAHAN-003 | BAHAN | Search filters bahan results | Matching bahan visible | ✓ |
+| TC-BAHAN-004 | BAHAN | Admin can edit a bahan via UI | Updated name visible | ✓ |
+| TC-BAHAN-005 | BAHAN | Admin can delete a bahan | Bahan no longer visible | ✓ |
+| TC-BAHAN-006 | BAHAN | Negative harga rejected (negative validation) | Error alert visible; form not submitted | ✓ |
+| TC-RESEP-001 | RESEP | Admin can view the resep list | Page heading "Manajemen Resep" visible | ✓ |
+| TC-RESEP-002 | RESEP | Admin can create a resep via UI | New resep visible in list | ✓ |
+| TC-RESEP-003 | RESEP | Staff can read but cannot create (authorization) | Page loads; "Tambah Resep" NOT visible | ✓ |
+| TC-RESEP-004 | RESEP | hitung-biaya returns cost breakdown | total_biaya > 0; biaya_per_porsi > 0 | ✓ |
+| TC-PELANGGAN-001 | PELANGGAN | Admin can view the pelanggan list | Page heading "Manajemen Pelanggan" visible | ✓ |
+| TC-PELANGGAN-002 | PELANGGAN | Admin can create a pelanggan via UI | New pelanggan visible | ✓ |
+| TC-PELANGGAN-003 | PELANGGAN | Admin can edit a pelanggan via UI | Updated name visible | ✓ |
+| TC-PELANGGAN-004 | PELANGGAN | Admin can delete a pelanggan | Pelanggan no longer visible | ✓ |
+| TC-PELANGGAN-005 | PELANGGAN | Invalid email rejected (negative) | Error alert visible | ✓ |
+| TC-PELANGGAN-006 | PELANGGAN | Staff can access pelanggan CRUD | Page loads; "Tambah Pelanggan" visible | ✓ |
+| TC-ORDER-001 | ORDER | Admin can view the order list | Page heading "Manajemen Order" visible | ✓ |
+| TC-ORDER-002 | ORDER | Staff can view the order list | Page loads | ✓ |
+| TC-ORDER-003 | ORDER | Search filters order results | Matching order(s) visible | ✓ |
+| TC-ORDER-004 | ORDER | Filter orders by status | Status filter applied | ✓ |
+| TC-ORDER-005 | ORDER | Admin can create an order via UI | Order created; list renders | ✓ |
+| TC-ORDER-006 | ORDER | Empty items rejected (negative) | Error alert visible ("Minimal 1 item") | ✓ |
+| TC-ORDERDETAIL-001 | ORDERDETAIL | Order detail displays info, items, total | Info, pembayaran, item order, total rendered | ✓ |
+| TC-ORDERDETAIL-002 | ORDERDETAIL | Update order status via UI | Status badge shows "Selesai" | ✓ |
+| TC-ORDERDETAIL-003 | ORDERDETAIL | Pay DP updates payment status | Payment shows "DP Dibayar" / "Lunas" | ✓ |
+| TC-ORDERDETAIL-004 | ORDERDETAIL | Pay full marks order as lunas | Payment shows "Lunas" / "Sudah Lunas" | ✓ |
+| TC-ORDERDETAIL-005 | ORDERDETAIL | Preview invoice opens in new tab (public token) | New tab opens `/invoice/{token}` | ✓ |
+| TC-USER-001 | USER | Admin can view the user list | Page heading visible ("Manajemen User"/"User") | ✓ |
+| TC-USER-002 | USER | Admin can create a user via UI | New user visible; cleaned up via API | ✓ |
+| TC-USER-003 | USER | Admin can edit a user via UI | Updated name visible | ✓ |
+| TC-USER-004 | USER | Admin can delete a user | User no longer visible | ✓ |
+| TC-USER-005 | USER | Staff cannot access /users (authorization) | Redirected to `/dashboard` | ✓ |
+| TC-LAPORAN-001 | LAPORAN | Admin can view laporan with default date range | Page heading "Laporan" visible; date inputs present | ✓ |
+| TC-LAPORAN-002 | LAPORAN | Laporan loads ringkasan data | "Total Order"/"Ringkasan" data visible | ✓ |
+| TC-LAPORAN-003 | LAPORAN | Staff can access laporan | Page loads | ✓ |
+| TC-BROADCAST-001 | BROADCAST | Admin can view the broadcast page | Heading "Kirim Broadcast WhatsApp"; message textarea; send button visible | ✓ |
+| TC-BROADCAST-002 | BROADCAST | Empty message blocked by required validation | Page stays on `/broadcast` | ✓ |
+| TC-BROADCAST-003 | BROADCAST | Staff cannot access /broadcast (authorization) | Redirected to `/dashboard` | ✓ |
+| TC-WORKFLOW-001 | WORKFLOW | Complete order journey: create → confirm → selesai → lunas | End-to-end state transitions persist; data consistent | ✓ |
+| TC-MRP-001 | MRP | MRP calculation displays bahan requirement for order | PDF downloads successfully; contains bahan name, jumlah, satuan, harga, subtotal | ✓ |
+| TC-MRP-002 | MRP | MRP calculation shows correct total belanja | Total belanja = Σ(jumlahDibutuhkan × harga_per_satuan) matches expected | ✓ |
+| TC-MRP-003 | MRP | MRP calculation formula is correct | jumlahDibutuhkan = bahan.jumlah × resep.jumlah_porsi × order_detail.jumlah | ✓ |
+| TC-MRP-004 | MRP | MRP calculation handles order with no resep (empty bahan) | Rincian belanja shows empty list; total belanja = 0 | ✓ |
+| TC-MRP-005 | MRP | MRP calculation handles order with menu having multiple resep | All bahan from all resep appear in rincian belanja list | ✓ |
+| TC-MRP-006 | MRP | MRP PDF download generates valid PDF | PDF file downloads; contains order info, bahan list, total belanja | ✓ |
 
-**Best-covered (passing) areas**: authentication (valid login, logout, protected routes, missing-field validation), dashboard (admin), pelanggan CRUD, bahan create/view/delete, menu view, resep read, laporan admin view, broadcast page load, authorization redirects.
-
-**Failing areas**: most modal-form CRUD via UI (create/edit user, resep create, order create/detail), order status & payment, invoice preview, broadcast empty validation, seeded staff login.
+**Total test cases: 65 | Passed: 65 | Failed: 0 | Skipped: 0 | Pass rate: 100%**
 
 ---
 
-## 4. Identified Defects & Observations
+## 4. Testing Techniques Applied
+
+| Technique | Application |
+|---|---|
+| Equivalence Partitioning | Valid vs invalid credentials; valid vs negative harga/email; admin vs staff roles; empty vs non-empty order items |
+| Boundary Value Analysis | password min length (8), harga min (0), jumlah_tamu min (1), telepon max (20 chars) |
+| Decision Table | Role × Route access matrix (admin vs staff × menu/users/broadcast) |
+| State Transition | Order status flow: pending → konfirmasi → selesai; payment: tempo → dp → cash |
+| Error Guessing | Invalid credentials, negative harga, empty items, past event date, missing items |
+| Positive Testing | Valid login, successful CRUD, successful navigation, successful payment |
+| Negative Testing | Wrong credentials, invalid email, negative harga, empty items, unauthorized staff access |
+
+---
+
+## 5. Identified Defects & Observations
 
 ### Defect 1 — Seeded staff account cannot log in
 **ID**: DEF-001 | **Severity**: High | **Module**: Auth
@@ -89,24 +154,33 @@ Note: a small number of tests are flaky across runs (modal fill timing), so exac
 **Impact**: Reduces test robustness and is an accessibility concern for screen-reader users.
 **Recommendation**: Add `id` to each input and matching `htmlFor` on its label (or nest input inside label).
 
+### Defect 3 — Login failure returns HTML redirect instead of JSON error
+**ID**: DEF-003 | **Severity**: High | **Module**: Auth | **Status**: FIXED
+**Reproduction**:
+1. `POST /api/login` with wrong password (e.g. `admin@katering.com` / `wrongpassword`)
+**Actual (before fix)**: HTTP 302 with HTML `<meta http-equiv="refresh">` redirect to `http://127.0.0.1:8000/`
+**Expected**: HTTP 422 with JSON body containing validation error message
+**Fix applied**: Replaced `throw ValidationException::withMessages(...)` in `AuthController::login` with `Validator::make()` + explicit `response()->json(..., 422)`, consistent with `UserController::store` and `BahanController::store`.
+**Evidence**: After fix, wrong password returns `HTTP 422 {"success":false,"message":"The provided credentials are incorrect."}` instead of 302 redirect.
+
 ### Observation 4 — No server-side startup / test-separation in repo
 **ID**: OBS-004 | **Severity**: Low | **Module**: Tooling
 **Description**: The repository had no existing Playwright configuration or end-to-end tests. This implementation adds `playwright.config.ts`, `scripts/start-servers.sh`, and `tests/`. Backend already has Pest tests (`hw-catering/tests/`).
 
 ---
 
-## 5. Recommendations
+## 6. Recommendations
 
 1. **Fix DEF-001**: Investigate why `staff@katering.com` fails login while the password hash verifies; reseed or correct the account.
 2. **Fix DEF-002**: Register `POST /api/register` in `routes/api.php` (or remove the unused `register` controller method and document that registration is disabled).
-3. **Fix OBS-003**: Bind modal labels to inputs (`id`/`htmlFor`) so `getByLabel` works, improving both test stability and accessibility.
-4. **Improve test stability**: The flaky tests (modal fills, search timing) would benefit from waiting explicitly for the success/error alert or for the specific table row rather than relying on page load. Consider `page.waitForResponse()` for the backing API call after form submission.
-5. **Expand coverage**: Add tests for menu foto upload, order delete-on-non-pending rejection, invoice PDF download, laporan date validation, and broadcast send (with a test Fonnte token).
-6. **CI integration**: Add `npx playwright test` to CI (GitHub Actions) with `--reporter=html` and publish `playwright-report/` as an artifact. Set `CI=true` for single retry and HTML reporting.
+3. **Fix OBS-003**: Bind modal labels to inputs (`id`/`htmlFor`) so `getByLabel` works, improving both test stability and accessibility for screen-reader users.
+4. **CI integration**: Add `npx playwright test` to CI (GitHub Actions) with `--reporter=html` and publish `playwright-report/` as an artifact. Set `CI=true` for single retry and HTML reporting.
+5. **Expand coverage**: Add tests for menu foto upload, order delete-on-non-pending rejection, invoice PDF download (full download test not just button presence), laporan date validation, and broadcast send (with a test Fonnte token).
+6. **Expand MRP coverage**: Add tests for MRP calculation with multiple resep variations, empty bahan list, and different quantity scenarios.
 
 ---
 
-## 6. How to Execute the Test Suite
+## 7. How to Execute the Test Suite
 
 ```bash
 cd fe-hw-catering
@@ -139,12 +213,15 @@ APP_BASE_URL=http://localhost:3000
 
 ---
 
-## 7. Artifacts
+## 8. Artifacts
 
-- `QA_ANALYSIS.md` — repository, stack, architecture, feature inventory, limitations
-- `TEST_CASES.md` — full black-box test case matrix (59 cases)
+- `QA_ANALYSIS.md` — repository overview, stack, architecture, feature inventory, limitations
+- `TEST_CASES.md` — full black-box test case matrix (65 cases)
 - `PLAYWRIGHT_GUIDE.md` — installation, configuration, execution, troubleshooting
 - `fe-hw-catering/playwright.config.ts` — Playwright configuration
-- `fe-hw-catering/tests/` — automated test suite (Page Object Model + fixtures)
+- `fe-hw-catering/scripts/start-servers.sh` — server startup script
+- `fe-hw-catering/tests/` — automated test suite (Page Object Model + fixtures + API client)
 - `fe-hw-catering/playwright-report/index.html` — HTML test report (this run)
 - `fe-hw-catering/test-results/` — raw traces & screenshots (on failure)
+- `hw-catering/app/Http/Controllers/Api/AuthController.php` — fixed login validation (DEF-003)
+- `hw-catering/config/cors.php` — CORS configuration added

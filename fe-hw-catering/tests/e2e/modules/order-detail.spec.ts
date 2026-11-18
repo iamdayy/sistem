@@ -18,8 +18,14 @@ detailTests.describe('Order Detail (Black Box)', () => {
     const { token: t } = await loginUser(USERS.admin);
     api = new ApiClient(apiContext).withToken(t);
     token = t;
+    // Clean up all orders to avoid duplicate nomor_order conflicts.
+    await api.cleanupOrders();
     orderPage = new OrderPage(page);
     orderDetailPage = new OrderDetailPage(page);
+  });
+
+  detailTests.afterEach(async () => {
+    await api.cleanupOrders();
   });
 
   async function seedOrder() {
@@ -30,13 +36,14 @@ detailTests.describe('Order Detail (Black Box)', () => {
     let menu = menus.data.data.find((m: any) => m.tersedia);
     if (!menu) {
       const reseps = await api.json<any>(await api.get('/resep?per_page=1', token));
-      const fd = new FormData();
-      fd.append('nama', 'Menu Detail Uji');
-      fd.append('harga', '20000');
-      fd.append('kategori', 'Makanan Utama');
-      fd.append('tersedia', '1');
-      fd.append('resep[0][resep_id]', String(reseps.data.data[0].id));
-      fd.append('resep[0][jumlah_porsi]', '1');
+      const fd: Record<string, string> = {
+        nama: 'Menu Detail Uji',
+        harga: '20000',
+        kategori: 'Makanan Utama',
+        tersedia: '1',
+        'resep[0][resep_id]': String(reseps.data.data[0].id),
+        'resep[0][jumlah_porsi]': '1',
+      };
       menu = (await api.json<any>(await api.postForm('/menu', fd, token))).data;
     }
     const order = await api.json<any>(
@@ -62,9 +69,9 @@ detailTests.describe('Order Detail (Black Box)', () => {
     await page.goto(`/order/${orderId}`);
     await orderDetailPage.expectLoaded();
     // Order info cards should render.
-    await expect(page.getByText(/Informasi Order/i)).toBeVisible();
-    await expect(page.getByText(/Pembayaran/i)).toBeVisible();
-    await expect(page.getByText(/Item Order/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Informasi Order/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Pembayaran/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Item Order/i })).toBeVisible();
   });
 
   detailTests('TC-ORDER-DETAIL-002: update order status via UI', async ({ page }) => {

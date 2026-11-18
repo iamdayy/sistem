@@ -8,8 +8,8 @@
  * Note on locators: the application's form labels are not bound to their
  * inputs via `for`/`id` and most inputs have no placeholder, so
  * `getByLabel`/`getByPlaceholder` do not work on the CRUD modals. The helper
- * `fillByLabelText` below locates an input by the visible text of its adjacent
- * `<label>` element, which is the closest robust, user-visible alternative.
+ * `fillByLabelText` below uses XPath `following-sibling` to locate the input
+ * that immediately follows a `<label>` with the given visible text.
  */
 import { Page, Locator, expect } from '@playwright/test';
 
@@ -54,25 +54,22 @@ export abstract class BasePage {
   /**
    * Fill an input whose visible `<label>` text matches `labelText`.
    * Used for CRUD modals where labels are not bound via `for`/`id`.
+   * Gets the label's parent element, then finds the input/textarea/select inside it.
    */
   async fillByLabelText(labelText: string | RegExp, value: string) {
-    const input = this.page
-      .locator('label', { hasText: labelText })
-      .first()
-      .locator('..')
-      .locator('input, textarea, select')
-      .first();
+    const text = String(labelText).replace(/'/g, "\\'");
+    const parent = this.page.locator(`xpath=//label[contains(., '${text}')]/..`);
+    const input = parent.locator('input, textarea, select').first();
+    await input.waitFor({ state: 'visible', timeout: 5000 });
     await input.fill(value);
   }
 
   /** Check a checkbox whose adjacent label text matches. */
   async checkByLabelText(labelText: string | RegExp, checked = true) {
-    const box = this.page
-      .locator('label', { hasText: labelText })
-      .first()
-      .locator('..')
-      .locator('input[type="checkbox"]')
-      .first();
+    const text = String(labelText).replace(/'/g, "\\'");
+    const parent = this.page.locator(`xpath=//label[contains(., '${text}')]/..`);
+    const box = parent.locator('input[type="checkbox"]').first();
+    await box.waitFor({ state: 'visible', timeout: 5000 });
     if ((await box.isChecked()) !== checked) {
       await box.click();
     }
@@ -80,12 +77,10 @@ export abstract class BasePage {
 
   /** Select an option in a `<select>` whose adjacent label text matches. */
   async selectByLabelText(labelText: string | RegExp, value: string) {
-    const select = this.page
-      .locator('label', { hasText: labelText })
-      .first()
-      .locator('..')
-      .locator('select')
-      .first();
+    const text = String(labelText).replace(/'/g, "\\'");
+    const grandparent = this.page.locator(`xpath=//label[contains(., '${text}')]/../..`);
+    const select = grandparent.locator('select').first();
+    await select.waitFor({ state: 'visible', timeout: 5000 });
     await select.selectOption(value);
   }
 
@@ -99,7 +94,7 @@ export abstract class BasePage {
     await expect(this.page.getByText(text)).toBeVisible();
   }
 
-  /** Check that the page does NOT contain the given text. */
+  /** Check that the page does NOT contain the text. */
   async expectNoText(text: string | RegExp) {
     await expect(this.page.getByText(text)).not.toBeVisible();
   }

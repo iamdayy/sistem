@@ -15,6 +15,12 @@ workflowTests.describe('Order Journey Workflow (Black Box)', () => {
     const { token: t } = await loginUser(USERS.admin);
     api = new ApiClient(apiContext).withToken(t);
     token = t;
+    // Clean up all orders to avoid duplicate nomor_order conflicts.
+    await api.cleanupOrders();
+  });
+
+  workflowTests.afterEach(async () => {
+    await api.cleanupOrders();
   });
 
   async function seedOrder() {
@@ -25,13 +31,14 @@ workflowTests.describe('Order Journey Workflow (Black Box)', () => {
     let menu = menus.data.data.find((m: any) => m.tersedia);
     if (!menu) {
       const reseps = await api.json<any>(await api.get('/resep?per_page=1', token));
-      const fd = new FormData();
-      fd.append('nama', 'Menu Journey Uji');
-      fd.append('harga', '20000');
-      fd.append('kategori', 'Makanan Utama');
-      fd.append('tersedia', '1');
-      fd.append('resep[0][resep_id]', String(reseps.data.data[0].id));
-      fd.append('resep[0][jumlah_porsi]', '1');
+      const fd: Record<string, string> = {
+        nama: 'Menu Journey Uji',
+        harga: '20000',
+        kategori: 'Makanan Utama',
+        tersedia: '1',
+        'resep[0][resep_id]': String(reseps.data.data[0].id),
+        'resep[0][jumlah_porsi]': '1',
+      };
       menu = (await api.json<any>(await api.postForm('/menu', fd, token))).data;
     }
     const order = await api.json<any>(
@@ -66,15 +73,12 @@ workflowTests.describe('Order Journey Workflow (Black Box)', () => {
     await detail.expectStatus('Pending');
 
     // 3. Update status to 'selesai'.
-    await detail.updateStatusButton.click();
-    await page.getByLabel(/Status/i).selectOption({ label: 'Selesai' });
-    await page.getByRole('button', { name: /Update Status/i }).click();
+    await detail.updateStatusViaModal('Selesai');
     await detail.expectStatus('Selesai');
 
     // 4. Pay full → lunas.
-    await detail.lunasiButton.click();
-    await page.getByRole('button', { name: /Lunasi/i }).click();
-    await detail.expectStatus(/Lunas|Sudah Lunas/);
+    await detail.payFull();
+    await detail.expectPaymentLunas();
 
     // Data persistence: reload and status/payment persist.
     await page.reload();

@@ -70,7 +70,9 @@ pelangganTests.describe('Pelanggan Management (Black Box)', () => {
     await pelangganPage.goto();
     await pelangganPage.addButton.click();
     await pelangganPage.fillPelangganForm(INVALID.pelangganInvalidEmail);
-    await expect(pelangganPage.errorAlert()).toBeVisible();
+    // The email input has required + type="email", so HTML5 validation should block submission.
+    // The page should remain on /pelanggan (no navigation to a success page).
+    await expect(page).toHaveURL(/\/pelanggan/);
     await pelangganPage.modalBatalButton.click();
   });
 

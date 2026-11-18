@@ -133,6 +133,9 @@ export const test = base.extend<AuthFixtures>({
         },
         { token: body.data.token, user: body.data.user },
       );
+      // Reload so the Next.js AuthContext re-mounts and reads the token from
+      // localStorage (it only reads localStorage on mount, not on navigation).
+      await page.reload();
       return { token: body.data.token, user: body.data.user };
     });
   }, { scope: 'test' }],

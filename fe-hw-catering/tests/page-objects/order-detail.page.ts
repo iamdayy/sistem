@@ -31,7 +31,11 @@ export class OrderDetailPage extends BasePage {
   }
 
   async expectPayment(status: string) {
-    await expect(this.page.getByText(status, { exact: false })).toBeVisible();
+    await expect(this.page.locator('span').filter({ hasText: status, exact: false }).first()).toBeVisible();
+  }
+
+  async expectPaymentLunas() {
+    await expect(this.page.getByText('✓ Sudah Lunas')).toBeVisible();
   }
 
   async expectTotalHarga(amount: string | number) {
@@ -41,17 +45,18 @@ export class OrderDetailPage extends BasePage {
   async updateStatusViaModal(newStatus: string) {
     await this.updateStatusButton.click();
     await this.selectByLabelText('Status', newStatus);
-    await this.page.getByRole('button', { name: /Update Status/i }).click();
+    // Scope to modal dialog to avoid matching the page-level button.
+    await this.page.locator('div.fixed.inset-0').getByRole('button', { name: /Update Status/i }).click();
   }
 
   async payDP(amount: string | number) {
     await this.bayarDPButton.click();
     await this.fillByLabelText('Jumlah DP', String(amount));
-    await this.page.getByRole('button', { name: /Bayar DP/i }).click();
+    await this.page.locator('div.fixed.inset-0').getByRole('button', { name: /Bayar DP/i }).click();
   }
 
   async payFull() {
     await this.lunasiButton.click();
-    await this.page.getByRole('button', { name: /Lunasi/i }).click();
+    await this.page.locator('div.fixed.inset-0').getByRole('button', { name: /Lunasi/i }).click();
   }
 }

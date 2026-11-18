@@ -161,6 +161,8 @@ Pages (`src/pages/`), all under `Layout` + `Sidebar`:
 5. **Video recording**: disabled (`video: off`) because ffmpeg is not packaged for Ubuntu 26.04. Screenshots and traces are retained on failure.
 6. **No destructive production operations**: All tests run against the local test database (`hw_katering`) using seeded/temporary data; created resources are cleaned up via the API after each test.
 
+7. **Login failure returns HTML redirect instead of JSON error (DEF-003 — FIXED)**: When `POST /api/login` was called with wrong credentials, the backend returned HTTP 302 with an HTML `<meta http-equiv="refresh">` redirect page instead of HTTP 422 with a JSON error body. **Fixed** by replacing `throw ValidationException::withMessages(...)` in `AuthController::login` with `Validator::make()` + explicit `response()->json(..., 422)`, consistent with `UserController::store` and `BahanController::store`. Verified: wrong password now returns `HTTP 422 {"success":false,"message":"The provided credentials are incorrect."}`.
+
 ---
 
 ## 9. Environment (used for execution)

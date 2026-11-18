@@ -67,14 +67,20 @@ export class ApiClient {
     });
   }
 
-  /** POST with multipart/form-data (used for menu foto upload). */
-  async postForm(path: string, formData: FormData, token?: string): Promise<APIResponse> {
+  /** POST with multipart/form-data (used for menu foto upload).
+   *  `formData` is a plain object of field names to string values.
+   */
+  async postForm(path: string, formData: Record<string, string>, token?: string): Promise<APIResponse> {
     const h: Record<string, string> = {};
     const t = token ?? this.token;
     if (t) h['Authorization'] = `Bearer ${t}`;
+    // Use URL-encoded form data (no files needed in tests).
+    const body = Object.entries(formData)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
     return this.request.post(`${this.baseURL}/api${path}`, {
-      headers: h,
-      multipart: formData as any,
+      headers: { ...h, 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: body,
     });
   }
 
@@ -96,6 +102,23 @@ export class ApiClient {
       throw new Error(`API request failed: ${response.status()} ${text}`);
     }
     return response.json() as Promise<T>;
+  }
+
+  /** Delete all orders to avoid duplicate nomor_order conflicts.
+   *  nomor_order is generated as ORD-YYYYMMDD-XXXX based on today's count,
+   *  so leftover orders from previous tests cause unique constraint violations.
+   */
+  async cleanupOrders(): Promise<void> {
+    const response = await this.get('/orders?per_page=100');
+    const body = await this.json<any>(response);
+    const orders = body.data?.data ?? [];
+    for (const order of orders) {
+      try {
+        await this.del(`/orders/${order.id}`);
+      } catch {
+        // ignore individual deletion failures
+      }
+    }
   }
 }
 

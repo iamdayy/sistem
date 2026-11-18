@@ -26,14 +26,15 @@ menuTests.describe('Menu Management (Black Box)', () => {
     const data = uniqueMenu();
     const reseps = await api.json(await api.get('/resep?per_page=1', adminToken));
     const resepId = (reseps as any).data.data[0].id;
-    const formData = new FormData();
-    formData.append('nama', data.nama);
-    formData.append('deskripsi', data.deskripsi);
-    formData.append('harga', String(data.harga));
-    formData.append('kategori', data.kategori);
-    formData.append('tersedia', '1');
-    formData.append('resep[0][resep_id]', String(resepId));
-    formData.append('resep[0][jumlah_porsi]', '1');
+    const formData: Record<string, string> = {
+      nama: data.nama,
+      deskripsi: data.deskripsi,
+      harga: String(data.harga),
+      kategori: data.kategori,
+      tersedia: '1',
+      'resep[0][resep_id]': String(resepId),
+      'resep[0][jumlah_porsi]': '1',
+    };
     const res = await api.postForm('/menu', formData, adminToken);
     const body = await api.json<any>(res);
     return { id: body.data.id, nama: data.nama };
@@ -88,10 +89,17 @@ menuTests.describe('Menu Management (Black Box)', () => {
     const { nama, id } = await createMenuViaApi();
     await menuPage.goto();
     await menuPage.expectMenuVisible(nama);
-    await menuPage.toggleButton(nama).click();
-    await expect(menuPage.page.getByText(/Tidak Tersedia/i)).toBeVisible();
-    await menuPage.toggleButton(nama).click();
-    await expect(menuPage.page.getByText(/Tersedia/i)).toBeVisible();
+    // Click Toggle Status on the menu card.
+    await menuPage.menuCard(nama).getByRole('button', { name: /Toggle Status/i }).click();
+    // The status badge changes to "Tidak Tersedia" (exclude filter dropdown option).
+    await expect(
+      page.locator('span').filter({ hasText: /Tidak Tersedia/ }).first()
+    ).toBeVisible();
+    // Toggle back.
+    await menuPage.menuCard(nama).getByRole('button', { name: /Toggle Status/i }).click();
+    await expect(
+      page.locator('span').filter({ hasText: /Tersedia/ }).first()
+    ).toBeVisible();
     await api.del(`/menu/${id}`, adminToken);
   });
 
